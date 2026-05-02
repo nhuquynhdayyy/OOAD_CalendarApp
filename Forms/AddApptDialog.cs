@@ -1,3 +1,5 @@
+using CalendarApp.Models;
+
 namespace CalendarApp.Forms;
 
 public class AddApptDialog : Form
@@ -117,5 +119,17 @@ pnlReminder.Controls.Add(new Label { Text = "Alert luc:", Location = new Point(0
         Controls.Add(btnCancel);
         AcceptButton = btnOk;
         CancelButton = btnCancel;
+    }
+
+    public void LoadAppointment(Appointment a)
+    {
+        Text = "Update Appointment";
+        txtName.Text = a.Name;
+        txtLocation.Text = a.Location;
+        dtpStart.Value = a.StartTime;
+        dtpEnd.Value = a.EndTime;
+        
+        // Note: For simplicity, we are not loading existing reminders here 
+        // as that would require searching the database for specific reminders.
     }
 }

@@ -74,6 +74,7 @@ public partial class MainForm : Form
             .OrderBy(a => a.StartTime)
             .Select(a => new
             {
+                Id = a.Id,
                 Ten = a.Name,
                 DiaDiem = a.Location,
                 BatDau = a.StartTime.ToString("HH:mm"),
@@ -83,6 +84,10 @@ public partial class MainForm : Form
             .ToList();
 
         dgvAppointments.DataSource = dailyAppointments;
+        if (dgvAppointments.Columns.Contains("Id"))
+        {
+            dgvAppointments.Columns["Id"].Visible = false;
+        }
     }
 
     private void MonthCalendar1_DateSelected(object? sender, DateRangeEventArgs e)
@@ -200,6 +205,85 @@ var appointment = new Appointment(
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
         RefreshGrid();
+    }
+
+    private void BtnUpdateAppointment_Click(object? sender, EventArgs e)
+    {
+        if (dgvAppointments.CurrentRow == null)
+        {
+            MessageBox.Show("Vui long chon mot appointment de cap nhat.", "Thong bao", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        string id = dgvAppointments.CurrentRow.Cells["Id"].Value.ToString()!;
+        var appointment = _calendar.Appointments.FirstOrDefault(a => a.Id == id);
+        
+        if (appointment == null) return;
+        if (appointment is GroupMeeting)
+        {
+            MessageBox.Show("Khong the cap nhat Group Meeting tu day.", "Thong bao", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        using var dialog = new AddApptDialog(_activeDate);
+        dialog.LoadAppointment(appointment);
+
+        if (dialog.ShowDialog(this) == DialogResult.OK)
+        {
+            appointment.Name = dialog.ApptName;
+            appointment.Location = dialog.ApptLocation;
+            appointment.StartTime = dialog.StartTime;
+            appointment.EndTime = dialog.EndTime;
+
+            var validator = new Validator();
+            if (!validator.Validate(appointment))
+            {
+                MessageBox.Show("Thong tin khong hop le.", "Loi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                _db.UpdateAppointment(appointment);
+                lblStatus.Text = "Da cap nhat appointment thanh cong.";
+                RefreshGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Loi khi cap nhat: {ex.Message}", "Loi Database", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+
+    private void BtnDeleteAppointment_Click(object? sender, EventArgs e)
+    {
+        if (dgvAppointments.CurrentRow == null)
+        {
+            MessageBox.Show("Vui long chon mot appointment de xoa.", "Thong bao", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        string id = dgvAppointments.CurrentRow.Cells["Id"].Value.ToString()!;
+        string name = dgvAppointments.CurrentRow.Cells["Ten"].Value.ToString()!;
+
+        var result = MessageBox.Show($"Ban co chac chan muon xoa appointment '{name}'?", "Xac nhan xoa", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        
+        if (result == DialogResult.Yes)
+        {
+            try
+            {
+                _db.DeleteAppointment(id);
+                var appt = _calendar.Appointments.FirstOrDefault(a => a.Id == id);
+                if (appt != null) _calendar.RemoveAppointment(appt);
+                
+                lblStatus.Text = "Da xoa appointment thanh cong.";
+                RefreshGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Loi khi xoa: {ex.Message}", "Loi Database", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 
     private bool TryInsertAppointment(Appointment appointment)

@@ -1,4 +1,4 @@
-﻿namespace CalendarApp.Forms;
+namespace CalendarApp.Forms;
 
 partial class MainForm
 {
@@ -31,6 +31,8 @@ partial class MainForm
         components = new System.ComponentModel.Container();
         monthCalendar1 = new MonthCalendar();
         btnAddAppointment = new Button();
+        btnUpdateAppointment = new Button();
+        btnDeleteAppointment = new Button();
         lblActiveDate = new Label();
         dgvAppointments = new DataGridView();
         lblStatus = new Label();
@@ -47,14 +49,30 @@ partial class MainForm
         btnAddAppointment.BackColor = Color.SteelBlue;
         btnAddAppointment.ForeColor = Color.White;
         btnAddAppointment.Location = new Point(12, 12);
-        btnAddAppointment.Size = new Size(245, 32);
-        btnAddAppointment.Text = "+ Add Appointment";
+        btnAddAppointment.Size = new Size(130, 32);
+        btnAddAppointment.Text = "+ Add";
         btnAddAppointment.UseVisualStyleBackColor = false;
         btnAddAppointment.Click += BtnAddAppointment_Click;
 
+        btnUpdateAppointment.BackColor = Color.DarkOrange;
+        btnUpdateAppointment.ForeColor = Color.White;
+        btnUpdateAppointment.Location = new Point(150, 12);
+        btnUpdateAppointment.Size = new Size(90, 32);
+        btnUpdateAppointment.Text = "Update";
+        btnUpdateAppointment.UseVisualStyleBackColor = false;
+        btnUpdateAppointment.Click += BtnUpdateAppointment_Click;
+
+        btnDeleteAppointment.BackColor = Color.Crimson;
+        btnDeleteAppointment.ForeColor = Color.White;
+        btnDeleteAppointment.Location = new Point(250, 12);
+        btnDeleteAppointment.Size = new Size(90, 32);
+        btnDeleteAppointment.Text = "Delete";
+        btnDeleteAppointment.UseVisualStyleBackColor = false;
+        btnDeleteAppointment.Click += BtnDeleteAppointment_Click;
+
         lblActiveDate.Font = new Font("Arial", 11F, FontStyle.Bold);
-        lblActiveDate.Location = new Point(280, 16);
-        lblActiveDate.Size = new Size(760, 28);
+        lblActiveDate.Location = new Point(350, 16);
+        lblActiveDate.Size = new Size(690, 28);
         lblActiveDate.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         dgvAppointments.AllowUserToAddRows = false;
@@ -75,7 +93,9 @@ partial class MainForm
         {
             monthCalendar1,
             btnAddAppointment,
-lblActiveDate,
+            btnUpdateAppointment,
+            btnDeleteAppointment,
+            lblActiveDate,
             dgvAppointments,
             lblStatus
         });
@@ -86,6 +106,8 @@ lblActiveDate,
 
     private MonthCalendar monthCalendar1;
     private Button btnAddAppointment;
+    private Button btnUpdateAppointment;
+    private Button btnDeleteAppointment;
     private Label lblActiveDate;
     private DataGridView dgvAppointments;
     private Label lblStatus;
