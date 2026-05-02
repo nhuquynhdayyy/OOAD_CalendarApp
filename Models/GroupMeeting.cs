@@ -20,7 +20,9 @@ namespace CalendarApp.Models
 
         public bool MatchesExisting(Appointment a)
         {
-            return this.Name == a.Name && this.GetDuration() == a.GetDuration();
+            return Name == a.Name
+                && StartTime == a.StartTime
+                && EndTime == a.EndTime;
         }
 
         public List<User> GetParticipants()

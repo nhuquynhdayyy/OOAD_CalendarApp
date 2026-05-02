@@ -62,6 +62,11 @@ namespace CalendarApp.Database
         {
             using var conn = new SqlConnection(ConnectionString);
             conn.Open();
+            var deleteReminders = new SqlCommand(
+                "DELETE FROM Reminders WHERE AppointmentId = @Id", conn);
+            deleteReminders.Parameters.AddWithValue("@Id", appointmentId);
+            deleteReminders.ExecuteNonQuery();
+
             var cmd = new SqlCommand(
                 "DELETE FROM Appointments WHERE Id = @Id", conn);
             cmd.Parameters.AddWithValue("@Id", appointmentId);
@@ -102,13 +107,46 @@ namespace CalendarApp.Database
             return list;
         }
 
+        public List<GroupMeeting> GetGroupMeetingsByUserId(string userId)
+        {
+            var list = new List<GroupMeeting>();
+            using var conn = new SqlConnection(ConnectionString);
+            conn.Open();
+            var cmd = new SqlCommand(@"
+                SELECT gm.*
+                FROM GroupMeetings gm
+                INNER JOIN GroupMeetingParticipants gmp
+                    ON gm.Id = gmp.MeetingId
+                WHERE gmp.UserId = @UserId", conn);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new GroupMeeting(
+                    reader["Id"].ToString()!,
+                    reader["Name"].ToString()!,
+                    reader["Location"].ToString()!,
+                    (DateTime)reader["StartTime"],
+                    (DateTime)reader["EndTime"],
+                    reader["MeetingCode"].ToString()!
+                ));
+            }
+            return list;
+        }
+
         public void AddParticipantToGroup(string meetingId, string userId)
         {
             using var conn = new SqlConnection(ConnectionString);
             conn.Open();
             var cmd = new SqlCommand(@"
-                INSERT INTO GroupMeetingParticipants (MeetingId, UserId)
-                VALUES (@MeetingId, @UserId)", conn);
+                IF NOT EXISTS (
+                    SELECT 1 FROM GroupMeetingParticipants
+                    WHERE MeetingId = @MeetingId AND UserId = @UserId
+                )
+                BEGIN
+                    INSERT INTO GroupMeetingParticipants (MeetingId, UserId)
+                    VALUES (@MeetingId, @UserId)
+                END", conn);
             cmd.Parameters.AddWithValue("@MeetingId", meetingId);
             cmd.Parameters.AddWithValue("@UserId", userId);
             cmd.ExecuteNonQuery();
