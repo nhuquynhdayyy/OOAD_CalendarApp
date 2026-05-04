@@ -162,7 +162,7 @@ namespace CalendarApp.Database
             using var conn = new MySqlConnection(ConnectionString);
             conn.Open();
             var cmd = new MySqlCommand(@"
-                DELETE FROM GroupMeetingParticipants 
+                DELETE FROM GroupMeetingParticipants
                 WHERE MeetingId = @MeetingId AND UserId = @UserId", conn);
             cmd.Parameters.AddWithValue("@MeetingId", meetingId);
             cmd.Parameters.AddWithValue("@UserId", userId);
