@@ -27,6 +27,7 @@ public partial class MainForm : Form
     private void LoadCurrentUser()
     {
         _currentUser = new User("u001", "Nguyen Van A", "a@email.com");
+        _db.EnsureUserExists(_currentUser);
         _calendar = new CalendarService(_currentUser.UserId);
     }
 
@@ -293,9 +294,19 @@ public partial class MainForm : Form
         {
             try
             {
-                _db.DeleteAppointment(id);
                 var appt = _calendar.Appointments.FirstOrDefault(a => a.Id == id);
-                if (appt != null) _calendar.RemoveAppointment(appt);
+                if (appt != null)
+                {
+                    if (appt is GroupMeeting)
+                    {
+                        _db.RemoveParticipantFromGroup(id, _currentUser.UserId);
+                    }
+                    else
+                    {
+                        _db.DeleteAppointment(id);
+                    }
+                    _calendar.RemoveAppointment(appt);
+                }
                 
                 lblStatus.Text = "Da xoa appointment thanh cong.";
                 RefreshGrid();
@@ -327,7 +338,15 @@ public partial class MainForm : Form
     {
         try
         {
-            _db.DeleteAppointment(appointmentId);
+            var appt = _calendar.Appointments.FirstOrDefault(a => a.Id == appointmentId);
+            if (appt is GroupMeeting)
+            {
+                _db.RemoveParticipantFromGroup(appointmentId, _currentUser.UserId);
+            }
+            else
+            {
+                _db.DeleteAppointment(appointmentId);
+            }
         }
         catch (Exception ex)
         {
