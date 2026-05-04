@@ -104,7 +104,7 @@ public partial class MainForm : Form
         {
             return;
         }
-var appointment = new Appointment(
+        var appointment = new Appointment(
             Guid.NewGuid().ToString(),
             dialog.ApptName,
             dialog.ApptLocation,
@@ -128,23 +128,44 @@ var appointment = new Appointment(
         {
             var conflictMessage = $"Trung lich voi: '{conflicting.Name}'\n" +
                 $"({conflicting.StartTime:HH:mm} - {conflicting.EndTime:HH:mm})\n\n" +
-                "Chon Yes de thay the, No/Cancel de chon gio khac.";
+                "Chon Yes de chon gio khac.\n" +
+                "Chon No de thay the.";
 
             var result = MessageBox.Show(
                 conflictMessage,
                 "Conflict Warning",
-                MessageBoxButtons.YesNoCancel,
-                MessageBoxIcon.Warning,
-                MessageBoxDefaultButton.Button1);
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
 
-            if (result != DialogResult.Yes)
+            if (result == DialogResult.Yes)
             {
-                lblStatus.ForeColor = Color.DarkGreen;
-                lblStatus.Text = "Da huy. Vui long chon gio khac.";
-                return;
+                using var retryDialog = new AddApptDialog(_activeDate);
+                retryDialog.LoadAppointment(appointment);
+                lblStatus.ForeColor = Color.DarkOrange;
+                lblStatus.Text = "Vui long chon gio khac.";
+                
+                if (retryDialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+                
+                appointment = new Appointment(
+                    Guid.NewGuid().ToString(),
+                    retryDialog.ApptName,
+                    retryDialog.ApptLocation,
+                    retryDialog.StartTime,
+                    retryDialog.EndTime);
+                
+                var stillConflicting = _calendar.GetConflictingAppointment(appointment);
+                if (stillConflicting != null)
+                {
+                    MessageBox.Show("Van con trung lich. Vui long chon gio khac.", 
+                        "Conflict", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
             }
-
-            shouldReplace = true;
+            else
+            {
+                shouldReplace = true;
+            }
         }
 
         var groupMatch = _calendar.FindGroupMatch(appointment);

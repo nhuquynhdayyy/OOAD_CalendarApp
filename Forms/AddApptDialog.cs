@@ -73,7 +73,7 @@ public class AddApptDialog : Form
 
         pnlReminder = new Panel { Location = new Point(10, y), Size = new Size(360, 65), Visible = false };
         chkReminder.CheckedChanged += (_, _) => pnlReminder.Visible = chkReminder.Checked;
-pnlReminder.Controls.Add(new Label { Text = "Alert luc:", Location = new Point(0, 5), Size = new Size(80, 25) });
+        pnlReminder.Controls.Add(new Label { Text = "Alert luc:", Location = new Point(0, 5), Size = new Size(80, 25) });
         dtpAlert = new DateTimePicker
         {
             Location = new Point(85, 2),
@@ -128,8 +128,5 @@ pnlReminder.Controls.Add(new Label { Text = "Alert luc:", Location = new Point(0
         txtLocation.Text = a.Location;
         dtpStart.Value = a.StartTime;
         dtpEnd.Value = a.EndTime;
-        
-        // Note: For simplicity, we are not loading existing reminders here 
-        // as that would require searching the database for specific reminders.
     }
 }

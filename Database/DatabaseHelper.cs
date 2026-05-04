@@ -3,8 +3,6 @@ using CalendarApp.Models;
 
 namespace CalendarApp.Database
 {
-    // To use this version, rename this class to 'DatabaseHelper' 
-    // and rename the current 'DatabaseHelper.cs' to something else.
     public class DatabaseHelper
     {
         private const string ConnectionString =

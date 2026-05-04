@@ -62,27 +62,28 @@ namespace CalendarApp.Forms
 
             if (hasConflict)
             {
+                var existingAppt = _calendar.GetConflictingAppointment(newAppt);
+
                 var conflictResult = MessageBox.Show(
-                    "You already have an appointment at this time.\n\n" +
-                    "Click YES to choose another time.\n" +
-                    "Click NO to replace the existing appointment.",
-                    "Time Conflict",
+                    $"Trung lich voi: '{existingAppt?.Name}'\n" +
+                    $"({existingAppt?.StartTime:HH:mm} - {existingAppt?.EndTime:HH:mm})\n\n" +
+                    "Chon Yes de chon gio khac.\n" +
+                    "Chon No de thay the.",
+                    "Conflict Warning",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning);
 
                 if (conflictResult == DialogResult.Yes)
                 {
-                    MessageBox.Show("Please choose another time.", "Info",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    dtpStart.Focus();
                     return;
                 }
                 else
                 {
-                    var existing = _calendar.GetConflictingAppointment(newAppt);
-                    if (existing != null)
+                    if (existingAppt != null)
                     {
-                        _calendar.ReplaceAppointment(existing, newAppt);
-                        _db.DeleteAppointment(existing.Id);
+                        _calendar.ReplaceAppointment(existingAppt, newAppt);
+                        _db.DeleteAppointment(existingAppt.Id);
                         _db.InsertAppointment(_currentUser.UserId, newAppt);
                     }
                     ShowConfirmation();
