@@ -1,46 +1,47 @@
-CREATE DATABASE CalendarApp_DB;
-GO
-
+CREATE DATABASE IF NOT EXISTS CalendarApp_DB;
 USE CalendarApp_DB;
-GO
 
 CREATE TABLE Users (
-    UserId NVARCHAR(50) PRIMARY KEY,
-    Name NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(100)
+    UserId VARCHAR(50) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100)
 );
 
 CREATE TABLE Appointments (
-    Id NVARCHAR(50) PRIMARY KEY,
-    UserId NVARCHAR(50) NOT NULL REFERENCES Users(UserId),
-    Name NVARCHAR(100) NOT NULL,
-    Location NVARCHAR(200),
+    Id VARCHAR(50) PRIMARY KEY,
+    UserId VARCHAR(50) NOT NULL,
+    Name VARCHAR(100) NOT NULL,
+    Location VARCHAR(200),
     StartTime DATETIME NOT NULL,
-    EndTime DATETIME NOT NULL
+    EndTime DATETIME NOT NULL,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
 );
 
 CREATE TABLE Reminders (
-    Id INT IDENTITY PRIMARY KEY,
-    AppointmentId NVARCHAR(50) NOT NULL REFERENCES Appointments(Id),
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    AppointmentId VARCHAR(50) NOT NULL,
     AlertTime DATETIME NOT NULL,
-    Type NVARCHAR(50)
+    Type VARCHAR(50),
+    FOREIGN KEY (AppointmentId) REFERENCES Appointments(Id) ON DELETE CASCADE
 );
 
 CREATE TABLE GroupMeetings (
-    Id NVARCHAR(50) PRIMARY KEY,
-    Name NVARCHAR(100) NOT NULL,
-    Location NVARCHAR(200),
+    Id VARCHAR(50) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Location VARCHAR(200),
     StartTime DATETIME NOT NULL,
     EndTime DATETIME NOT NULL,
-    MeetingCode NVARCHAR(50)
+    MeetingCode VARCHAR(50)
 );
 
 CREATE TABLE GroupMeetingParticipants (
-    MeetingId NVARCHAR(50) NOT NULL REFERENCES GroupMeetings(Id),
-    UserId NVARCHAR(50) NOT NULL REFERENCES Users(UserId),
-    PRIMARY KEY (MeetingId, UserId)
+    MeetingId VARCHAR(50) NOT NULL,
+    UserId VARCHAR(50) NOT NULL,
+    PRIMARY KEY (MeetingId, UserId),
+    FOREIGN KEY (MeetingId) REFERENCES GroupMeetings(Id) ON DELETE CASCADE,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
 );
 
-INSERT INTO Users VALUES ('u001', 'Nguyen Van A', 'a@email.com');
-INSERT INTO GroupMeetings VALUES ('gm001', 'Team Standup', 'Room 101',
-    '2026-05-06 09:00', '2026-05-06 09:30', 'STAND001');
+INSERT INTO Users (UserId, Name, Email) VALUES ('u001', 'Nguyen Van A', 'a@email.com');
+INSERT INTO GroupMeetings (Id, Name, Location, StartTime, EndTime, MeetingCode) 
+VALUES ('gm001', 'Team Standup', 'Room 101', '2026-05-06 09:00:00', '2026-05-06 09:30:00', 'STAND001');

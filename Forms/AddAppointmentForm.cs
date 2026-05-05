@@ -6,6 +6,8 @@ namespace CalendarApp.Forms
 {
     public partial class AddAppointmentForm : Form
     {
+        public static Func<string, string, MessageBoxButtons, MessageBoxIcon, DialogResult> ShowMessage = MessageBox.Show;
+
         private string _name;
         private string _location;
         private DateTime _startTime;
@@ -45,7 +47,7 @@ namespace CalendarApp.Forms
         {
             if (!ValidateInput())
             {
-                MessageBox.Show(
+                ShowMessage(
                     "Invalid input: Name cannot be empty and end time must be after start time.",
                     "Validation Error",
                     MessageBoxButtons.OK,
@@ -59,12 +61,14 @@ namespace CalendarApp.Forms
             var newAppt = window.Submit();
 
             bool hasConflict = _calendar.CheckConflict(newAppt);
+            bool shouldReplace = false;
+            Appointment? existingAppt = null;
 
             if (hasConflict)
             {
-                var existingAppt = _calendar.GetConflictingAppointment(newAppt);
+                existingAppt = _calendar.GetConflictingAppointment(newAppt);
 
-                var conflictResult = MessageBox.Show(
+                var conflictResult = ShowMessage(
                     $"Trung lich voi: '{existingAppt?.Name}'\n" +
                     $"({existingAppt?.StartTime:HH:mm} - {existingAppt?.EndTime:HH:mm})\n\n" +
                     "Chon Yes de chon gio khac.\n" +
@@ -80,15 +84,7 @@ namespace CalendarApp.Forms
                 }
                 else
                 {
-                    if (existingAppt != null)
-                    {
-                        _calendar.ReplaceAppointment(existingAppt, newAppt);
-                        _db.DeleteAppointment(existingAppt.Id);
-                        _db.InsertAppointment(_currentUser.UserId, newAppt);
-                    }
-                    ShowConfirmation();
-                    this.Close();
-                    return;
+                    shouldReplace = true;
                 }
             }
 
@@ -96,7 +92,7 @@ namespace CalendarApp.Forms
 
             if (groupMatch != null)
             {
-                var joinResult = MessageBox.Show(
+                var joinResult = ShowMessage(
                     $"An existing group meeting '{groupMatch.Name}' matches your appointment.\n" +
                     "Do you want to join that group meeting instead?",
                     "Join Group Meeting?",
@@ -105,17 +101,37 @@ namespace CalendarApp.Forms
 
                 if (joinResult == DialogResult.Yes)
                 {
+                    if (shouldReplace && existingAppt != null)
+                    {
+                        _calendar.RemoveAppointment(existingAppt);
+                        if (existingAppt is GroupMeeting)
+                            _db.RemoveParticipantFromGroup(existingAppt.Id, _currentUser.UserId);
+                        else
+                            _db.DeleteAppointment(existingAppt.Id);
+                    }
+
                     var updatedGroup = _calendar.AddParticipantToGroup(groupMatch, _currentUser);
                     _db.AddParticipantToGroup(updatedGroup.Id, _currentUser.UserId);
 
-                    MessageBox.Show("You have joined the group meeting!", "Confirmed",
+                    ShowMessage("You have joined the group meeting!", "Confirmed",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.Close();
                     return;
                 }
             }
 
-            _calendar.AddAppointment(newAppt);
+            if (shouldReplace && existingAppt != null)
+            {
+                _calendar.ReplaceAppointment(existingAppt, newAppt);
+                if (existingAppt is GroupMeeting)
+                    _db.RemoveParticipantFromGroup(existingAppt.Id, _currentUser.UserId);
+                else
+                    _db.DeleteAppointment(existingAppt.Id);
+            }
+            else
+            {
+                _calendar.AddAppointment(newAppt);
+            }
             _db.InsertAppointment(_currentUser.UserId, newAppt);
 
             if (chkReminder.Checked)
@@ -135,7 +151,7 @@ namespace CalendarApp.Forms
 
         private void ShowConfirmation()
         {
-            MessageBox.Show("Appointment saved successfully!", "Success",
+            ShowMessage("Appointment saved successfully!", "Success",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
